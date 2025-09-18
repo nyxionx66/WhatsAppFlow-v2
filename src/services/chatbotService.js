@@ -291,16 +291,33 @@ Respond with JSON:
   }
 
   /**
-   * Process memory operations in background using AI
+   * Process relationship building and persona evolution
    */
-  async processMemoryInBackground(userId, userMessage) {
+  async processRelationshipAndPersona(userId, userMessage) {
     try {
-      // Run AI memory analysis in background
-      setTimeout(async () => {
-        await aiMemoryManager.analyzeMessageForMemoryOperations(userId, userMessage, geminiClient);
-      }, 100);
+      // Analyze relationship building opportunities
+      const opportunities = await personaManager.analyzeRelationshipOpportunities(userId, userMessage);
+      
+      // Process relationship opportunities
+      if (opportunities.length > 0) {
+        await personaManager.processRelationshipOpportunities(userId, opportunities);
+      }
+
+      // Check for crisis indicators
+      const crisisKeywords = ['depressed', 'want to die', 'hate myself', 'give up', 'can\'t handle', 'suicidal'];
+      if (crisisKeywords.some(keyword => userMessage.toLowerCase().includes(keyword))) {
+        proactiveEngagementManager.markUserInCrisis(userId, 'high', 'Crisis keywords detected in conversation');
+      }
+
+      // Trigger predictive analysis for high-engagement interactions
+      if (opportunities.length > 0 || userMessage.length > 100) {
+        // Run predictive analysis in background
+        setTimeout(async () => {
+          await predictiveAI.predictUserMood(userId, 12);
+        }, 5000); // 5 second delay
+      }
     } catch (error) {
-      logger.debug('Background memory processing error:', error);
+      logger.debug('Error in relationship and persona processing:', error);
     }
   }
 
