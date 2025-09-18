@@ -162,7 +162,7 @@ Respond with JSON:
   }
 
   /**
-   * Handle incoming WhatsApp message with AI-driven approach
+   * Handle incoming WhatsApp message with enhanced AI-driven approach
    */
   async handleIncomingMessage(messageInfo) {
     const { sender, text, senderName, isGroup, quotedMessage, hasQuote } = messageInfo;
@@ -186,6 +186,9 @@ Respond with JSON:
       logger.info(`📨 ${senderName}: ${preview}`);
 
       this.activeUsers.add(sender);
+      
+      // Register user with proactive engagement manager
+      proactiveEngagementManager.registerActiveUser(sender);
 
       // Handle realistic chat presence (seen/read behavior)
       await chatPresenceManager.handleMessagePresence(messageInfo);
@@ -195,6 +198,9 @@ Respond with JSON:
 
       // AI-driven memory analysis (happens in background)
       this.processMemoryInBackground(sender, text);
+
+      // Enhanced relationship and persona analysis
+      await this.processRelationshipAndPersona(sender, text);
 
       // Handle reply context
       let finalText = text;
@@ -228,17 +234,34 @@ Respond with JSON:
         originalText: text
       });
 
-      // Get AI-driven context
-      const conversationHistory = await jsonDb.getConversationContext(sender);
+      // Get enhanced AI-driven context with persona
+      const conversationHistory = await jsonDb.getConversationContext(sender, false); // Don't include legacy system prompt
       const memorySummary = await memoryManager.getMemorySummary(sender);
       const userMemory = await memoryManager.getUserMemory(sender);
       const timeContext = await jsonDb.getTimeContext(sender);
 
+      // Generate dynamic persona-based system prompt
+      const currentMood = userMemory.emotionalProfile?.currentMood;
+      const personaPrompt = await personaManager.generatePersonaPrompt(sender, { userMood: currentMood });
+
+      // Add persona prompt to conversation context
+      const enhancedHistory = [
+        {
+          role: 'user',
+          parts: [{ text: personaPrompt }]
+        },
+        {
+          role: 'model',
+          parts: [{ text: `I understand! I'm ${config.persona.name}, ready to chat with you as your friend! 😊` }]
+        },
+        ...conversationHistory
+      ];
+
       // Add time context to memory summary
       const aiMemorySummary = memorySummary + this.formatTimeContextForAI(timeContext);
 
-      // Generate response using Gemini with all context
-      const response = await geminiClient.generateContent(conversationHistory, aiMemorySummary, userMemory);
+      // Generate response using Gemini with enhanced context
+      const response = await geminiClient.generateContent(enhancedHistory, aiMemorySummary, userMemory);
 
       // Clean response
       const cleanResponse = this.cleanResponse(response);
@@ -253,7 +276,7 @@ Respond with JSON:
       // Notify presence manager about bot response
       chatPresenceManager.onBotResponse(sender);
 
-      logger.success(`✨ AI-driven reply sent to ${senderName}`);
+      logger.success(`✨ Enhanced AI reply sent to ${senderName}`);
 
     } catch (err) {
       logger.error(`Failed to process message from ${senderName}:`, err);
@@ -264,8 +287,6 @@ Respond with JSON:
 
     } finally {
       this.processingMessages.delete(messageKey);
-      
-      // Note: Don't clean up presence tracking here as it's managed by timers
     }
   }
 
