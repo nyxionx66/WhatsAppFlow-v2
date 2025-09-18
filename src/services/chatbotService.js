@@ -291,6 +291,20 @@ Respond with JSON:
   }
 
   /**
+   * Process memory operations in background using AI
+   */
+  async processMemoryInBackground(userId, userMessage) {
+    try {
+      // Run AI memory analysis in background
+      setTimeout(async () => {
+        await aiMemoryManager.analyzeMessageForMemoryOperations(userId, userMessage, geminiClient);
+      }, 100);
+    } catch (error) {
+      logger.debug('Background memory processing error:', error);
+    }
+  }
+
+  /**
    * Process relationship building and persona evolution
    */
   async processRelationshipAndPersona(userId, userMessage) {
