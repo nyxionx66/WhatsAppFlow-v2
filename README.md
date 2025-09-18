@@ -296,6 +296,7 @@ PERSONA_EDUCATION_LEVEL=Advanced Level (A/L) student
 # Personality (comma-separated traits)
 PERSONA_PERSONALITY_TRAITS=supportive,caring,friendly,understanding,empathetic
 ```
+### **Feature Controls**
 ```env
 # Proactive Engagement
 PROACTIVE_MENTAL_HEALTH_CHECKINS=true
