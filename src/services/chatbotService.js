@@ -419,16 +419,44 @@ Respond with JSON:
   }
 
   /**
-   * Get service status
+   * Get comprehensive service status
    */
   getStatus() {
     return {
       activeUsers: this.activeUsers.size,
       processingMessages: this.processingMessages.size,
-      proactiveMessaging: config.bot.proactiveMessaging,
+      
+      // Core AI features
       aiMemory: true,
       aiTools: true,
-      chatPresence: chatPresenceManager.getPresenceStatus()
+      chatPresence: chatPresenceManager.getPresenceStatus(),
+      
+      // Enhanced AI systems
+      personaSystem: {
+        enabled: true,
+        dynamicPersonality: config.features.dynamic.personality_evolution,
+        relationshipTracking: config.features.dynamic.relationship_tracking,
+        contextAdaptation: config.features.dynamic.context_adaptation
+      },
+      
+      proactiveEngagement: {
+        enabled: config.features.proactive.mental_health_checkins,
+        ...proactiveEngagementManager.getStatus()
+      },
+      
+      predictiveAI: {
+        enabled: config.features.predictive.mood_analysis,
+        ...predictiveAI.getStatus()
+      },
+      
+      // Persona configuration
+      currentPersona: {
+        name: config.persona.name,
+        age: config.persona.age,
+        location: `${config.persona.location.city}, ${config.persona.location.country}`,
+        education: config.persona.education.level,
+        traits: config.persona.personality_traits.slice(0, 5) // Show first 5 traits
+      }
     };
   }
 }
