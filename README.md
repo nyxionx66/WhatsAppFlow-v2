@@ -279,7 +279,23 @@ PERSONA_SPECIAL_RULES=Always remember important details about friends and family
 
 ## 🔧 **Configuration Guide**
 
-### **Enable/Disable Features:**
+All bot behavior is configured through environment variables in your `.env` file:
+
+### **Core Persona Settings**
+```env
+# Your bot's identity
+PERSONA_NAME=Sandun
+PERSONA_AGE=17
+PERSONA_GENDER=male
+
+# Location and background  
+PERSONA_LOCATION_CITY=Colombo
+PERSONA_LOCATION_COUNTRY=Sri Lanka
+PERSONA_EDUCATION_LEVEL=Advanced Level (A/L) student
+
+# Personality (comma-separated traits)
+PERSONA_PERSONALITY_TRAITS=supportive,caring,friendly,understanding,empathetic
+```
 ```env
 # Proactive Engagement
 PROACTIVE_MENTAL_HEALTH_CHECKINS=true
