@@ -5,6 +5,9 @@ import { chatbotService } from './services/chatbotService.js';
 import { jsonDb } from './database/jsonDb.js';
 import { config } from './config/config.js';
 import { logger } from './utils/logger.js';
+import { personaManager } from './system/personaManager.js';
+import { proactiveEngagementManager } from './system/proactiveEngagementManager.js';
+import { predictiveAI } from './system/predictiveAI.js';
 
 // Handle graceful shutdown
 process.on('SIGINT', async () => {
