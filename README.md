@@ -425,3 +425,57 @@ The enhanced bot provides comprehensive status monitoring:
 ---
 
 This enhanced system transforms your WhatsApp bot from a simple responder into a sophisticated AI companion that genuinely cares about users and adapts to their needs over time! 🚀✨
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+### Development Setup
+```bash
+# Clone the repo
+git clone <your-repo-url>
+cd whatsapp-ai-bot
+
+# Install dependencies
+npm install
+
+# Run in development mode
+npm run dev
+```
+
+### Contribution Guidelines
+- Follow existing code style and patterns
+- Add tests for new features
+- Update documentation for any changes
+- Ensure all existing tests pass
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- **Google Gemini 2.5 Pro** - For providing the advanced AI capabilities
+- **Baileys** - For the excellent WhatsApp Web API implementation
+- **Node.js Community** - For the amazing ecosystem and tools
+
+---
+
+## 📞 Support
+
+If you encounter any issues or have questions:
+
+1. Check the [Issues](../../issues) page
+2. Review the configuration examples in this README
+3. Ensure your Gemini API keys are valid and have sufficient quota
+4. Verify your Node.js version is 18 or higher
+
+---
+
+**Made with ❤️ for the AI community**
