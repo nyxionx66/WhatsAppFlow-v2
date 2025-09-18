@@ -48,6 +48,52 @@ npm start
 - **Gemini API Key(s)** - Get from [Google AI Studio](https://makersuite.google.com/app/apikey)
 - **WhatsApp Account** - For QR code scanning
 
+---
+
+## 📦 Installation
+
+### Prerequisites
+- Node.js 18 or higher
+- npm or yarn package manager
+- Gemini API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+- WhatsApp account for QR code scanning
+
+### Setup Steps
+
+1. **Clone and install:**
+```bash
+git clone <your-repo-url>
+cd whatsapp-ai-bot
+npm install
+```
+
+2. **Configure environment:**
+```bash
+cp .env.example .env
+```
+
+3. **Add your Gemini API keys to `.env`:**
+```env
+GEMINI_API_KEYS=your_key_1,your_key_2,your_key_3
+```
+
+4. **Customize your persona (optional):**
+```env
+PERSONA_NAME=YourBotName
+PERSONA_AGE=17
+PERSONA_LOCATION_CITY=YourCity
+# ... see full configuration below
+```
+
+5. **Start the bot:**
+```bash
+npm start
+```
+
+6. **Scan QR code** and start chatting!
+
+---
+
 ## 🎭 **Dynamic Personality Evolution System**
 
 ### **What it does:**
