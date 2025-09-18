@@ -7,6 +7,23 @@
 
 A sophisticated WhatsApp AI bot powered by **Google Gemini 2.5 Pro** with advanced features including **Dynamic Personality Evolution**, **Proactive Engagement**, **Predictive AI**, and **Fully Customizable Personas**.
 
+## 📑 Table of Contents
+
+- [✨ Key Features](#-key-features)
+- [🚀 Quick Start](#-quick-start)
+- [📦 Installation](#-installation)
+- [🎭 Dynamic Personality Evolution](#-dynamic-personality-evolution-system)
+- [🎯 Proactive Engagement Features](#-proactive-engagement-features)
+- [🔮 Predictive AI Systems](#-predictive-ai-systems)
+- [⚙️ Customizable Persona System](#%EF%B8%8F-fully-customizable-persona-system)
+- [🔧 Configuration Guide](#-configuration-guide)
+- [🎯 Example Configurations](#-example-persona-configurations)
+- [📊 System Status](#-advanced-monitoring)
+- [⚡ Performance](#-performance--scalability)
+- [💡 Tips](#-tips-for-best-results)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+
 ## ✨ Key Features
 
 🎭 **Dynamic Personality Evolution** - Bot personality adapts and evolves based on relationship depth  
