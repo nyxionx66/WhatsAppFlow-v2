@@ -8,6 +8,9 @@ import { aiTools } from '../tools/aiTools.js';
 import { mcpTools } from '../tools/mcpTools.js';
 import { memoryManager } from '../database/memoryManager.js';
 import { chatPresenceManager } from './chatPresenceManager.js';
+import { personaManager } from '../system/personaManager.js';
+import { proactiveEngagementManager } from '../system/proactiveEngagementManager.js';
+import { predictiveAI } from '../system/predictiveAI.js';
 import cron from 'node-cron';
 
 const logger = createModuleLogger('ChatbotService');
