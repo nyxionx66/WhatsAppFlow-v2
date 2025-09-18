@@ -1,0 +1,382 @@
+import { jsonDb } from '../database/jsonDb.js';
+import { geminiClient } from '../gemini/geminiClient.js';
+import { whatsappClient } from '../whatsapp/whatsappClient.js';
+import { config } from '../config/config.js';
+import { createModuleLogger } from '../utils/logger.js';
+import { aiMemoryManager } from '../database/aiMemoryManager.js';
+import { aiTools } from '../tools/aiTools.js';
+import { mcpTools } from '../tools/mcpTools.js';
+import { memoryManager } from '../database/memoryManager.js';
+import { chatPresenceManager } from './chatPresenceManager.js';
+import cron from 'node-cron';
+
+const logger = createModuleLogger('ChatbotService');
+
+export class ChatbotService {
+  constructor() {
+    this.processingMessages = new Set();
+    this.activeUsers = new Set();
+    this.lastProactiveMessage = new Map();
+    this.setupMessageHandler();
+    this.setupProactiveMessaging();
+  }
+
+  /**
+   * Set up message handler for WhatsApp client
+   */
+  setupMessageHandler() {
+    whatsappClient.onMessage(async (messageInfo) => {
+      await this.handleIncomingMessage(messageInfo);
+    });
+  }
+
+  /**
+   * Set up proactive messaging system
+   */
+  setupProactiveMessaging() {
+    if (!config.bot.proactiveMessaging) {
+      return;
+    }
+
+    // Run every 30 minutes to check for proactive messaging opportunities
+    cron.schedule('*/30 * * * *', async () => {
+      await this.checkProactiveMessaging();
+    });
+
+    logger.info('✅ AI-driven proactive messaging system enabled');
+  }
+
+  /**
+   * Check if we should send proactive messages to any users
+   */
+  async checkProactiveMessaging() {
+    try {
+      const now = Date.now();
+      
+      for (const userId of this.activeUsers) {
+        const lastProactive = this.lastProactiveMessage.get(userId) || 0;
+        const timeSinceLastProactive = now - lastProactive;
+        
+        if (timeSinceLastProactive >= config.bot.proactiveInterval) {
+          const shouldSend = await this.shouldSendProactiveMessage(userId);
+          if (shouldSend) {
+            await this.sendProactiveMessage(userId);
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Error in proactive messaging check:', error);
+    }
+  }
+
+  /**
+   * Intelligent decision making for proactive messages
+   */
+  async shouldSendProactiveMessage(userId) {
+    try {
+      const memory = await memoryManager.getUserMemory(userId);
+      const timeContext = await jsonDb.getTimeContext(userId);
+      
+      // Use AI to decide if proactive message should be sent
+      const shouldSendPrompt = `PROACTIVE MESSAGING DECISION:
+
+USER MEMORY: ${JSON.stringify(memory, null, 2)}
+TIME CONTEXT: ${JSON.stringify(timeContext, null, 2)}
+
+Should I send a proactive message to this user right now? Consider:
+- Their emotional state and recent mood
+- Time since last interaction
+- Current time of day and context
+- Ongoing issues or important events
+- Academic stress or exam periods
+- Relationship situations
+
+Respond with JSON:
+{
+  "should_send": true/false,
+  "reason": "explanation for decision",
+  "probability": 0.0-1.0
+}`;
+
+      const analysisHistory = [{
+        role: 'user',
+        parts: [{ text: shouldSendPrompt }]
+      }];
+
+      const response = await geminiClient.generateContent(analysisHistory, null, null, 1);
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      
+      if (jsonMatch) {
+        const decision = JSON.parse(jsonMatch[0]);
+        logger.debug(`Proactive decision for ${userId}: ${decision.should_send} (${decision.probability}) - ${decision.reason}`);
+        return decision.should_send && decision.probability > 0.5;
+      }
+      
+      return Math.random() < 0.2; // Fallback
+    } catch (error) {
+      logger.error('Error in proactive decision making:', error);
+      return Math.random() < 0.2;
+    }
+  }
+
+  /**
+   * Send a proactive message to a user
+   */
+  async sendProactiveMessage(userId) {
+    try {
+      logger.info(`Generating AI-driven proactive message for user: ${userId}`);
+      
+      const conversationHistory = await jsonDb.getConversationContext(userId);
+      const memory = await memoryManager.getUserMemory(userId);
+      const timeContext = await jsonDb.getTimeContext(userId);
+      const memorySummary = await memoryManager.getMemorySummary(userId);
+      
+      const proactiveMessage = await geminiClient.generateProactiveMessage(
+        conversationHistory, 
+        memorySummary, 
+        timeContext,
+        memory
+      );
+      
+      if (proactiveMessage) {
+        await whatsappClient.sendTyping(userId, true);
+        await new Promise(resolve => setTimeout(resolve, config.bot.thinkingDelay));
+        
+        await jsonDb.addMessage(userId, 'assistant', proactiveMessage, {
+          isProactive: true
+        });
+        
+        await whatsappClient.sendTyping(userId, false);
+        await whatsappClient.sendMessage(userId, proactiveMessage);
+        
+        this.lastProactiveMessage.set(userId, Date.now());
+        
+        logger.success(`Sent AI-driven proactive message to user: ${userId}`);
+      }
+    } catch (error) {
+      logger.error(`Failed to send proactive message to ${userId}:`, error);
+    }
+  }
+
+  /**
+   * Handle incoming WhatsApp message with AI-driven approach
+   */
+  async handleIncomingMessage(messageInfo) {
+    const { sender, text, senderName, isGroup, quotedMessage, hasQuote } = messageInfo;
+
+    if (isGroup) {
+      logger.debug(`Skipping group message from ${senderName}`);
+      return;
+    }
+
+    const messageKey = `${sender}-${messageInfo.id}`;
+    if (this.processingMessages.has(messageKey)) {
+      logger.debug(`Duplicate message detected: ${messageKey}`);
+      return;
+    }
+
+    this.processingMessages.add(messageKey);
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    try {
+      const preview = text.length > 50 ? text.substring(0, 50) + '...' : text;
+      logger.info(`📨 ${senderName}: ${preview}`);
+
+      this.activeUsers.add(sender);
+
+      // Handle realistic chat presence (seen/read behavior)
+      await chatPresenceManager.handleMessagePresence(messageInfo);
+      
+      // Notify presence manager about user activity
+      chatPresenceManager.onUserMessage(sender);
+
+      // AI-driven memory analysis (happens in background)
+      this.processMemoryInBackground(sender, text);
+
+      // Handle reply context
+      let finalText = text;
+      if (hasQuote && quotedMessage) {
+        const replyContext = this.formatReplyContext(quotedMessage);
+        finalText = `${replyContext}\n\nUser's reply: ${text}`;
+      }
+
+      // AI-driven tool analysis
+      const toolResults = await this.processToolsWithAI(sender, text);
+      
+      // Add tool results to context if any
+      if (toolResults) {
+        const toolContext = aiTools.formatToolResultsForAI(toolResults);
+        finalText = `${finalText}${toolContext}`;
+      }
+
+      // Show typing indicator
+      await whatsappClient.sendTyping(sender, true);
+
+      if (config.bot.thinkingDelay > 0) {
+        await new Promise(resolve => setTimeout(resolve, config.bot.thinkingDelay));
+      }
+
+      // Store user message
+      await jsonDb.addMessage(sender, 'user', finalText, {
+        senderName,
+        messageId: messageInfo.id,
+        quotedMessage: quotedMessage,
+        hasQuote: hasQuote,
+        originalText: text
+      });
+
+      // Get AI-driven context
+      const conversationHistory = await jsonDb.getConversationContext(sender);
+      const memorySummary = await memoryManager.getMemorySummary(sender);
+      const userMemory = await memoryManager.getUserMemory(sender);
+      const timeContext = await jsonDb.getTimeContext(sender);
+
+      // Add time context to memory summary
+      const aiMemorySummary = memorySummary + this.formatTimeContextForAI(timeContext);
+
+      // Generate response using Gemini with all context
+      const response = await geminiClient.generateContent(conversationHistory, aiMemorySummary, userMemory);
+
+      // Clean response
+      const cleanResponse = this.cleanResponse(response);
+
+      // Store bot response
+      await jsonDb.addMessage(sender, 'assistant', cleanResponse);
+
+      // Stop typing and send
+      await whatsappClient.sendTyping(sender, false);
+      await whatsappClient.sendMessage(sender, cleanResponse);
+
+      // Notify presence manager about bot response
+      chatPresenceManager.onBotResponse(sender);
+
+      logger.success(`✨ AI-driven reply sent to ${senderName}`);
+
+    } catch (err) {
+      logger.error(`Failed to process message from ${senderName}:`, err);
+
+      await whatsappClient.sendTyping(sender, false);
+      const errorMessage = this.getErrorMessage(err);
+      await whatsappClient.sendMessage(sender, errorMessage);
+
+    } finally {
+      this.processingMessages.delete(messageKey);
+      
+      // Note: Don't clean up presence tracking here as it's managed by timers
+    }
+  }
+
+  /**
+   * Process memory operations in background using AI
+   */
+  async processMemoryInBackground(userId, userMessage) {
+    try {
+      // Run AI memory analysis in background
+      setTimeout(async () => {
+        await aiMemoryManager.analyzeMessageForMemoryOperations(userId, userMessage, geminiClient);
+      }, 100);
+    } catch (error) {
+      logger.debug('Background memory processing error:', error);
+    }
+  }
+
+  /**
+   * Process tools using AI analysis
+   */
+  async processToolsWithAI(userId, userMessage) {
+    try {
+      const availableTools = mcpTools.getAvailableTools();
+      return await aiTools.analyzeMessageForToolOperations(userId, userMessage, availableTools, geminiClient);
+    } catch (error) {
+      logger.debug('AI tool processing error:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Format reply context for AI understanding
+   */
+  formatReplyContext(quotedMessage) {
+    if (!quotedMessage) return '';
+    
+    const sender = quotedMessage.isFromBot ? 'Isiri' : 'User';
+    return `[REPLYING TO ${sender.toUpperCase()}: "${quotedMessage.text}"]`;
+  }
+
+  /**
+   * Format time context for AI understanding
+   */
+  formatTimeContextForAI(timeContext) {
+    if (!timeContext) return '';
+
+    let context = `\n\n=== REAL-TIME CONTEXT ===\n`;
+    context += `Current time: ${timeContext.currentTime} (${timeContext.currentTimeOfDay})\n`;
+    
+    if (timeContext.timeSinceLastMessage !== null) {
+      context += `Time since last message: ${timeContext.timeSinceLastMessage} minutes ago\n`;
+    }
+    
+    if (timeContext.isLateNight) {
+      context += `⚠️ It's late night - user should probably be sleeping for A/L studies\n`;
+    }
+    
+    if (timeContext.isMealTime) {
+      context += `🍽️ It's meal time - good time to ask about food\n`;
+    }
+    
+    if (timeContext.isStudyTime) {
+      context += `📚 It's typical study time for A/L students\n`;
+    }
+    
+    context += `\nUse this timing information to respond naturally as a real friend would!\n`;
+    return context;
+  }
+
+  /**
+   * Clean response text
+   */
+  cleanResponse(response) {
+    if (!response) return 'Sorry, mata response eka generate karanna bari una. Try again please! 😅';
+    
+    // Remove any JSON artifacts or debug info
+    let cleaned = response
+      .replace(/```json[\s\S]*?```/g, '')
+      .replace(/\{[\s\S]*?\}/g, '')
+      .replace(/MEMORY ANALYSIS[\s\S]*$/i, '')
+      .replace(/TOOL ANALYSIS[\s\S]*$/i, '')
+      .trim();
+    
+    return cleaned || 'Hmm, mata mokak reply karanna ona kiyala confuse una. Try again? 🤔';
+  }
+
+  /**
+   * Get appropriate error message
+   */
+  getErrorMessage(error) {
+    const errorMessages = [
+      'Aney sorry, mata mokak weda una! 😅 Try again please.',
+      'Ehh, error wela! Mata brain freeze wela thiyenawa. 🤯',
+      'Oops! Mata thoda issue ekak. Try again karanna? 🙈',
+      'Sorry sorry, mata system eka hang wela. Eka try karanna! 😬'
+    ];
+    
+    return errorMessages[Math.floor(Math.random() * errorMessages.length)];
+  }
+
+  /**
+   * Get service status
+   */
+  getStatus() {
+    return {
+      activeUsers: this.activeUsers.size,
+      processingMessages: this.processingMessages.size,
+      proactiveMessaging: config.bot.proactiveMessaging,
+      aiMemory: true,
+      aiTools: true,
+      chatPresence: chatPresenceManager.getPresenceStatus()
+    };
+  }
+}
+
+// Export singleton instance
+export const chatbotService = new ChatbotService();
