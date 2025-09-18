@@ -21,7 +21,7 @@ export class ChatbotService {
     this.activeUsers = new Set();
     this.lastProactiveMessage = new Map();
     this.setupMessageHandler();
-    this.setupProactiveMessaging();
+    // Remove legacy proactive messaging - now handled by proactiveEngagementManager
   }
 
   /**
