@@ -20,7 +20,6 @@ export const config = {
 
   // Bot configuration
   bot: {
-    name: process.env.BOT_NAME || 'Isiri',
     maxChatHistory: parseInt(process.env.MAX_CHAT_HISTORY) || 30, // Increased for better memory
     thinkingDelay: parseInt(process.env.THINKING_DELAY) || 1500, // Faster response time
     proactiveMessaging: process.env.PROACTIVE_MESSAGING === 'true' || true,
