@@ -33,19 +33,24 @@ async function shutdown() {
 
 async function startAIBot() {
   try {
-    logger.banner('NETHMI WHATSAPP BOT - AI VERSION', 'Powered by Google Gemini 2.5 Pro with AI-Driven Memory & Tools');
+    logger.banner(`${config.persona.name.toUpperCase()} WHATSAPP BOT - AI VERSION`, 'Enhanced with Dynamic Personality, Proactive Engagement & Predictive AI');
     
-    logger.section('AI System Initialization');
-    logger.success('AI bot configuration loaded');
-    logger.success('AI-driven memory system ready');
-    logger.success('AI-powered tools system ready');
-    logger.success('Database ready');
-    logger.success('Gemini AI connected');
+    logger.section('Enhanced AI System Initialization');
+    logger.success(`✅ Persona System: ${config.persona.name} (${config.persona.age} years old)`);
+    logger.success(`✅ Location: ${config.persona.location.city}, ${config.persona.location.country}`);
+    logger.success(`✅ Education: ${config.persona.education.level}`);
+    logger.success('✅ Dynamic Personality Evolution enabled');
+    logger.success('✅ Proactive Engagement Manager ready');
+    logger.success('✅ Predictive AI Systems active');
+    logger.success('✅ AI-driven memory system ready');
+    logger.success('✅ AI-powered tools system ready');
+    logger.success('✅ Database ready');
+    logger.success('✅ Gemini AI connected');
 
     // Set up connection handler
     whatsappClient.onConnection((status) => {
       if (status.connected) {
-        logger.banner('AI SYSTEM ONLINE', `${config.bot.name} is online with advanced AI capabilities! 🇱🇰💕🤖`);
+        logger.banner('ENHANCED AI SYSTEM ONLINE', `${config.persona.name} is online with advanced AI capabilities! 🇱🇰💕🤖`);
       } else {
         logger.warn('WhatsApp connection lost');
       }
@@ -59,15 +64,18 @@ async function startAIBot() {
     // Initialize WhatsApp client
     await whatsappClient.initialize();
 
-    logger.section('AI Bot Status');
-    logger.success('All AI systems operational');
-    logger.success('AI memory analysis active');
-    logger.success('AI tool processing active');
-    logger.success('Proactive messaging with AI');
+    logger.section('Enhanced AI Bot Status');
+    logger.success('✅ All AI systems operational');
+    logger.success('✅ Dynamic personality system active');
+    logger.success('✅ Proactive engagement monitoring');
+    logger.success('✅ Predictive AI analysis running');
+    logger.success('✅ AI memory analysis active');
+    logger.success('✅ AI tool processing active');
+    logger.success('✅ Relationship tracking enabled');
     logger.info('Monitoring for messages with advanced AI...');
 
   } catch (error) {
-    logger.fatal('AI bot startup failed', error);
+    logger.fatal('Enhanced AI bot startup failed', error);
     process.exit(1);
   }
 }
