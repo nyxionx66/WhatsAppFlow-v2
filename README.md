@@ -1,8 +1,54 @@
-# 🚀 Enhanced WhatsApp AI Bot - Advanced Features
+# 🤖 Advanced WhatsApp AI Bot
 
-This document describes the **4 major enhancements** that have been added to your WhatsApp AI bot:
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
+[![Gemini AI](https://img.shields.io/badge/Gemini-2.5%20Pro-blue.svg)](https://ai.google.dev/)
+[![WhatsApp](https://img.shields.io/badge/WhatsApp-Baileys-25D366.svg)](https://github.com/WhiskeySockets/Baileys)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 🎭 **1. Dynamic Personality Evolution System**
+A sophisticated WhatsApp AI bot powered by **Google Gemini 2.5 Pro** with advanced features including **Dynamic Personality Evolution**, **Proactive Engagement**, **Predictive AI**, and **Fully Customizable Personas**.
+
+## ✨ Key Features
+
+🎭 **Dynamic Personality Evolution** - Bot personality adapts and evolves based on relationship depth  
+🎯 **Proactive Engagement** - 5 automated systems for mental health, study motivation, and crisis support  
+🔮 **Predictive AI** - Predicts mood, academic risk, and optimal study times  
+⚙️ **Fully Customizable Personas** - Complete personality customization through environment variables  
+🧠 **Advanced Memory System** - Remembers personal details, relationships, and emotional context  
+🛠️ **AI-Powered Tools** - Smart tool usage for calculations, messaging, and time queries  
+
+## 🚀 Quick Start
+
+1. **Clone the repository**
+```bash
+git clone <your-repo-url>
+cd whatsapp-ai-bot
+```
+
+2. **Install dependencies**
+```bash
+npm install
+```
+
+3. **Configure your persona**
+```bash
+cp .env.example .env
+# Edit .env with your Gemini API keys and persona details
+```
+
+4. **Start the bot**
+```bash
+npm start
+```
+
+5. **Scan QR code** with WhatsApp and start chatting!
+
+## 📋 Requirements
+
+- **Node.js** 18 or higher
+- **Gemini API Key(s)** - Get from [Google AI Studio](https://makersuite.google.com/app/apikey)
+- **WhatsApp Account** - For QR code scanning
+
+## 🎭 **Dynamic Personality Evolution System**
 
 ### **What it does:**
 - **Relationship-based personality adaptation**: The bot's personality evolves based on how close it becomes with each user
