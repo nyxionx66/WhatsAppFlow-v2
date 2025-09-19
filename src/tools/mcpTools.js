@@ -702,7 +702,7 @@ export class MCPTools {
       title = 'Document',
       style = 'academic',
       colorScheme = 'blue',
-      language = 'en',
+      language = 'si', // Default to Sinhala
       pageLayout = 'single-column',
       includeHeader = true,
       includeFooter = true
@@ -718,8 +718,9 @@ export class MCPTools {
 
     const selectedColors = colors[colorScheme] || colors.blue;
 
+    // Enhanced Sinhala font support with better fallbacks
     const fontFamily = language === 'si' ? 
-      "'Noto Sans Sinhala', 'Iskoola Pota', serif" : 
+      "'Noto Sans Sinhala', 'Noto Serif Sinhala', 'Iskoola Pota', 'DL-Manel', 'Mal Gun', 'FM Abhaya', serif" : 
       "'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
 
     return `
@@ -731,6 +732,7 @@ export class MCPTools {
         <title>${title}</title>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Sinhala:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         <style>
           :root {
             --primary-color: ${selectedColors.primary};
@@ -767,11 +769,12 @@ export class MCPTools {
 
           body {
             font-family: var(--font-family);
-            font-size: ${language === 'si' ? '14pt' : '11pt'};
-            line-height: 1.7;
+            font-size: ${language === 'si' ? '15pt' : '11pt'}; /* Slightly larger for better Sinhala readability */
+            line-height: ${language === 'si' ? '1.8' : '1.7'}; /* Better line spacing for Sinhala */
             color: var(--text-color);
             background: white;
             -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility; /* Better text rendering for Sinhala */
           }
 
           .document-header {
@@ -786,11 +789,12 @@ export class MCPTools {
           }
 
           .document-title {
-            font-size: ${language === 'si' ? '28pt' : '24pt'};
+            font-size: ${language === 'si' ? '30pt' : '24pt'}; /* Larger for Sinhala titles */
             font-weight: 700;
             color: var(--primary-color);
             margin-bottom: 10px;
-            letter-spacing: -0.5px;
+            letter-spacing: ${language === 'si' ? '0px' : '-0.5px'}; /* No letter spacing for Sinhala */
+            word-spacing: ${language === 'si' ? '0.1em' : 'normal'}; /* Better word spacing for Sinhala */
           }
 
           .document-subtitle {
@@ -815,31 +819,34 @@ export class MCPTools {
           }
 
           h1 {
-            font-size: ${language === 'si' ? '22pt' : '20pt'};
+            font-size: ${language === 'si' ? '24pt' : '20pt'}; /* Larger for Sinhala headings */
             font-weight: 600;
             color: var(--primary-color);
             margin: 35px 0 20px 0;
             padding-bottom: 10px;
             border-bottom: 2px solid var(--accent-color);
             page-break-after: avoid;
+            word-spacing: ${language === 'si' ? '0.1em' : 'normal'};
           }
 
           h2 {
-            font-size: ${language === 'si' ? '18pt' : '16pt'};
+            font-size: ${language === 'si' ? '20pt' : '16pt'}; /* Larger for Sinhala subheadings */
             font-weight: 600;
             color: var(--primary-color);
             margin: 30px 0 15px 0;
             padding-left: 15px;
             border-left: 4px solid var(--primary-color);
             page-break-after: avoid;
+            word-spacing: ${language === 'si' ? '0.1em' : 'normal'};
           }
 
           h3 {
-            font-size: ${language === 'si' ? '16pt' : '14pt'};
+            font-size: ${language === 'si' ? '18pt' : '14pt'}; /* Larger for Sinhala */
             font-weight: 600;
             color: var(--secondary-color);
             margin: 25px 0 12px 0;
             page-break-after: avoid;
+            word-spacing: ${language === 'si' ? '0.1em' : 'normal'};
           }
 
           h4 {
@@ -850,11 +857,13 @@ export class MCPTools {
           }
 
           p {
-            margin-bottom: 15px;
+            margin-bottom: ${language === 'si' ? '18px' : '15px'}; /* More spacing for Sinhala */
             text-align: justify;
             text-justify: inter-word;
             orphans: 3;
             widows: 3;
+            word-spacing: ${language === 'si' ? '0.05em' : 'normal'}; /* Better word spacing for Sinhala */
+            text-indent: ${language === 'si' ? '1.5em' : '0'}; /* Indent for Sinhala paragraphs */
           }
 
           .highlight {
@@ -1089,11 +1098,11 @@ export class MCPTools {
   }
 
   /**
-   * Process and enhance content with AI
+   * Process and enhance content with AI - optimized for Sinhala
    */
   async _processContentWithAI(content, options = {}) {
     const {
-      language = 'en',
+      language = 'si', // Default to Sinhala
       style = 'academic',
       enhance = true,
       addStructure = true,
@@ -1114,16 +1123,15 @@ export class MCPTools {
 
     prompts.push("Ensure the content is comprehensive, well-formatted, and suitable for a professional document.");
 
-    if (language === 'si') {
-      prompts.push("The entire content must be in Sinhala language with no English words mixed in, except for proper nouns and technical terms.");
-    }
+    // Always enhance for Sinhala
+    prompts.push("The entire content must be in Sinhala language with proper Sinhala grammar and structure. Use natural Sinhala expressions and terminology. Avoid mixing English words unless they are commonly accepted technical terms.");
 
     const enhancementPrompt = `
 Please enhance and improve the following content according to these requirements:
 ${prompts.map((p, i) => `${i + 1}. ${p}`).join('\n')}
 
 Style: ${style}
-Language: ${language === 'si' ? 'Sinhala' : 'English'}
+Language: Sinhala (සිංහල)
 
 Original content:
 ---
@@ -1218,13 +1226,12 @@ Please return only the enhanced content without any additional commentary.
 
     logger.info(`Creating professional PDF for topic: ${topic}`);
 
-    // Determine language and personalization
     const userMemory = await memoryManager.getUserMemory(userId);
-    const userIsFromSriLanka = userMemory.personalInfo?.location?.toLowerCase().includes('sri lanka');
-    const personaIsSinhala = config.persona.name === 'Sandun';
-    const language = (personaIsSinhala && userIsFromSriLanka) ? 'si' : 'en';
+    const language = 'si'; // Always use Sinhala
 
-    // Generate content with AI
+    // Generate structured study guide in Sinhala
+
+    // Generate content with AI - Always in Sinhala
     const generationPrompt = `Create a comprehensive, well-structured document about "${topic}". 
 Style: ${style}
 Requirements:
@@ -1233,7 +1240,9 @@ Requirements:
 - Add relevant examples and explanations
 - Make it suitable for learning and reference
 - Length: comprehensive but focused
-${language === 'si' ? '- Write entirely in Sinhala language' : ''}
+- Write entirely in Sinhala language with proper Sinhala grammar and structure
+- Use natural Sinhala expressions and terminology
+- Avoid mixing English words unless they are commonly accepted technical terms
 ${includeImages ? '- Indicate where diagrams or images would be helpful with [IMAGE: description]' : ''}
 
 Format the content with markdown-style formatting for better structure.`;
@@ -1243,9 +1252,9 @@ Format the content with markdown-style formatting for better structure.`;
       parts: [{ text: generationPrompt }] 
     }]);
 
-    // Enhance content
+    // Enhance content for Sinhala
     const processedContent = await this._processContentWithAI(rawContent, {
-      language,
+      language: 'si', // Always Sinhala
       style,
       enhance: true,
       addStructure: true,
@@ -1255,18 +1264,18 @@ Format the content with markdown-style formatting for better structure.`;
     // Convert to HTML
     const htmlContent = this._convertToHtml(processedContent);
 
-    // Get template and inject content
+    // Get template with Sinhala language
     const template = this._getPdfTemplate({
       title: topic,
       style,
       colorScheme,
-      language,
+      language: 'si', // Always Sinhala
       pageLayout,
       includeHeader: true,
       includeFooter: true
     });
 
-    const currentDate = new Date().toLocaleDateString(language === 'si' ? 'si-LK' : 'en-US', {
+    const currentDate = new Date().toLocaleDateString('si-LK', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -1274,10 +1283,9 @@ Format the content with markdown-style formatting for better structure.`;
 
     const finalHtml = template
       .replace('{TITLE}', topic)
-      .replace('{SUBTITLE}', language === 'si' ? 'සම්පූර්ණ අධ්‍යයන මාර්ගෝපදේශය' : 'Comprehensive Study Guide')
-      .replace('{META}', language === 'si' ? 
-        `${userMemory.personalInfo?.name || 'පරිශීලක'} සඳහා සකස් කරන ලදී` : 
-        `Prepared for ${userMemory.personalInfo?.name || 'User'}`
+      .replace('{SUBTITLE}', 'සම්පූර්ණ අධ්‍යයන මාර්ගෝපදේශය') // Always use Sinhala subtitle
+      .replace('{META}', 
+        `${userMemory.personalInfo?.name || 'පරිශීලක'} සඳහා සකස් කරන ලදී` // Always use Sinhala meta
       )
       .replace('{CONTENT}', htmlContent)
       .replace('{DATE}', currentDate);
@@ -1300,12 +1308,12 @@ Format the content with markdown-style formatting for better structure.`;
     const txtFilePath = filePath.replace('.pdf', '.txt');
     await fs.writeFile(txtFilePath, processedContent, 'utf-8');
 
-    // Store metadata
+    // Store metadata with Sinhala language
     await this._storePdfMetadata(filePath, {
       topic,
       userId,
       style,
-      language,
+      language: 'si', // Always Sinhala
       type: 'topic-guide',
       pageLayout,
       colorScheme
@@ -1321,7 +1329,7 @@ Format the content with markdown-style formatting for better structure.`;
       metadata: {
         pages: 'Multiple',
         style,
-        language,
+        language: 'si', // Always Sinhala
         size: (await fs.stat(filePath)).size
       }
     };
@@ -1343,8 +1351,8 @@ Format the content with markdown-style formatting for better structure.`;
     logger.info(`Creating study guide PDF for: ${subject}`);
 
     const userMemory = await memoryManager.getUserMemory(userId);
-    const language = (config.persona.name === 'Sandun' && 
-                     userMemory.personalInfo?.location?.toLowerCase().includes('sri lanka')) ? 'si' : 'en';
+    // Always use Sinhala as default language for PDFs
+    const language = 'si';
 
     // Generate structured study guide
     const prompt = `Create a comprehensive study guide for "${subject}".
@@ -1355,7 +1363,9 @@ Requirements:
 - Include summary points for each chapter
 ${includeQuizzes ? '- Add 5 practice questions at the end of each chapter' : ''}
 - Make it suitable for ${difficulty} level students
-${language === 'si' ? '- Write entirely in Sinhala language' : ''}
+- Write entirely in Sinhala language with proper Sinhala grammar and structure
+- Use natural Sinhala expressions and terminology
+- Avoid mixing English words unless they are commonly accepted technical terms
 - Use proper headings and structure
 - Include important formulas, definitions, and key points
 
@@ -1371,13 +1381,13 @@ Format with clear sections and markdown-style formatting.`;
       title: subject,
       style: 'academic',
       colorScheme: 'blue',
-      language,
+      language: 'si', // Always Sinhala
       pageLayout: 'single-column'
     });
 
     const finalHtml = template
       .replace('{TITLE}', subject)
-      .replace('{SUBTITLE}', language === 'si' ? 'අධ්‍යයන මාර්ගෝපදේශය' : 'Study Guide')
+      .replace('{SUBTITLE}', 'අධ්‍යයන මාර්ගෝපදේශය') // Always use Sinhala
       .replace('{META}', `${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} Level`)
       .replace('{CONTENT}', htmlContent)
       .replace('{DATE}', new Date().toLocaleDateString());
@@ -1399,7 +1409,7 @@ Format with clear sections and markdown-style formatting.`;
       type: 'study-guide',
       difficulty,
       includeQuizzes,
-      language
+      language: 'si' // Always Sinhala
     });
 
     return {
@@ -1428,7 +1438,7 @@ Format with clear sections and markdown-style formatting.`;
       style = 'professional',
       colorScheme = 'blue',
       pageLayout = 'single-column',
-      language = 'en'
+      language = 'si' // Always default to Sinhala
     } = formatting;
 
     const htmlContent = this._convertToHtml(content);
