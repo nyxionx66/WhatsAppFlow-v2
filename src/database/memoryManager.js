@@ -11,6 +11,13 @@ export class MemoryManager {
   }
 
   /**
+   * Set the last created PDF path for a user
+   */
+  async setLastPdfPath(userId, filePath) {
+    return await this.updateMemory(userId, 'conversationContext', { lastPdfPath: filePath });
+  }
+
+  /**
    * Get a lock for a specific user to prevent concurrent modifications
    */
   async acquireLock(userId) {
@@ -122,7 +129,8 @@ export class MemoryManager {
         ongoingIssues: [],
         promisesToKeep: [],
         thingsToRemember: [],
-        lastInteraction: null
+        lastInteraction: null,
+        lastPdfPath: null
       },
       contacts: {},
       createdAt: new Date().toISOString(),

@@ -33,9 +33,6 @@ async function shutdown() {
 
 async function startAIBot() {
   try {
-    logger.banner(`${config.persona.name.toUpperCase()} WHATSAPP BOT - AI VERSION`, 'Enhanced with Dynamic Personality, Proactive Engagement & Predictive AI');
-    
-    logger.section('Enhanced AI System Initialization');
     logger.success(`✅ Persona System: ${config.persona.name} (${config.persona.age} years old)`);
     logger.success(`✅ Location: ${config.persona.location.city}, ${config.persona.location.country}`);
     logger.success(`✅ Education: ${config.persona.education.level}`);
@@ -50,7 +47,7 @@ async function startAIBot() {
     // Set up connection handler
     whatsappClient.onConnection((status) => {
       if (status.connected) {
-        logger.banner('ENHANCED AI SYSTEM ONLINE', `${config.persona.name} is online with advanced AI capabilities! 🇱🇰💕🤖`);
+        logger.success(`${config.persona.name} is online with advanced AI capabilities! 🇱🇰💕🤖`);
       } else {
         logger.warn('WhatsApp connection lost');
       }
@@ -64,7 +61,6 @@ async function startAIBot() {
     // Initialize WhatsApp client
     await whatsappClient.initialize();
 
-    logger.section('Enhanced AI Bot Status');
     logger.success('✅ All AI systems operational');
     logger.success('✅ Dynamic personality system active');
     logger.success('✅ Proactive engagement monitoring');

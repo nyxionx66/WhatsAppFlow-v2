@@ -88,6 +88,14 @@ export class ChatbotService {
       
       // Add tool results to context if any
       if (toolResults) {
+        // Handle PDF tool results
+        const pdfResult = toolResults.find(r => r.tool === 'create_pdf_from_topic' || r.tool === 'append_to_pdf');
+        if (pdfResult && !pdfResult.error) {
+            await whatsappClient.sendTyping(sender, true);
+            await mcpTools.executeTool('send_pdf_to_user', { userId: sender, filePath: pdfResult.result.filePath, fileName: `${pdfResult.result.filePath.split('/').pop()}` });
+            await memoryManager.setLastPdfPath(sender, pdfResult.result.filePath);
+        }
+
         const toolContext = aiTools.formatToolResultsForAI(toolResults);
         finalText = `${finalText}${toolContext}`;
       }
@@ -282,6 +290,11 @@ export class ChatbotService {
    * Get appropriate error message
    */
   getErrorMessage(error) {
+    // Check for specific Gemini API errors
+    if (error && error.message && error.message.includes('Gemini')) {
+      return 'Aney sorry, my AI brain is a bit tired right now. Can you try again in a moment? 🧠💤';
+    }
+
     const errorMessages = [
       'Aney sorry, mata mokak weda una! 😅 Try again please.',
       'Ehh, error wela! Mata brain freeze wela thiyenawa. 🤯',

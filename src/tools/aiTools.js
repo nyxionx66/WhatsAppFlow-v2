@@ -1,6 +1,7 @@
 import { createModuleLogger } from '../utils/logger.js';
 import { aiMemoryManager } from '../database/aiMemoryManager.js';
 import { mcpTools } from './mcpTools.js';
+import { jsonDb } from '../database/jsonDb.js';
 
 const logger = createModuleLogger('AITools');
 
@@ -79,16 +80,21 @@ export class AITools {
   /**
    * Generate tool analysis prompt for AI
    */
-  generateToolAnalysisPrompt(userMessage, availableTools) {
+  generateToolAnalysisPrompt(userMessage, conversationHistory, availableTools) {
     const toolsList = Object.entries(availableTools).map(([name, info]) => 
-      `- ${name}: ${info.description}`
+      `- ${name}: ${info.description} (parameters: ${JSON.stringify(info.parameters)})`
     ).join('\n');
+
+    const history = conversationHistory.map(m => `${m.role}: ${m.parts[0].text}`).join('\n');
 
     return `TOOL ANALYSIS TASK:
 
-Analyze the user's message and determine if any tools should be executed.
+Analyze the user's message in the context of the conversation history and determine if any tools should be executed.
 
-USER MESSAGE: "${userMessage}"
+CONVERSATION HISTORY:
+${history}
+
+LATEST USER MESSAGE: "${userMessage}"
 
 AVAILABLE TOOLS:
 ${toolsList}
@@ -98,21 +104,19 @@ RESPOND WITH JSON ONLY:
   "tool_operations": [
     {
       "tool": "tool_name",
-      "parameters": {...},
+      "parameters": {"param1": "value1", ...},
       "reason": "why this tool should be executed"
     }
   ]
 }
 
 TOOL EXECUTION RULES:
-1. Only suggest tools that are clearly needed based on the user's message
-2. Don't execute tools for information that can be answered without them
-3. For time/date queries, use appropriate time/date tools
-4. For calculations, use calculate tool
-5. For messaging requests, use send_message_to_number with number and message parameters
-6. If no tools are needed, return empty array: []
-7. When user asks to send a message to a number, extract the number and message content
-8. For emotional context or memory storage, include relevant data in parameters
+1. Only suggest tools that are clearly needed based on the user's message and history.
+2. For 'store_memory', the 'data' parameter must be a JSON object with the information to store.
+3. For 'analyze_emotional_state', the 'emotionalContext' must be a JSON object describing the user's mood, stress level, and any relevant emotional traits observed.
+4. If no tools are needed, return an empty array for "tool_operations": [].
+5. Ensure all required parameters for a tool are provided in the 'parameters' object.
+6. Base your decision on the full context. For example, if the user says "remember this", you need to find "this" from the conversation.
 
 RESPOND WITH VALID JSON ONLY - NO OTHER TEXT.`;
   }
@@ -122,17 +126,18 @@ RESPOND WITH VALID JSON ONLY - NO OTHER TEXT.`;
    */
   async analyzeMessageForToolOperations(userId, userMessage, availableTools, geminiClient) {
     try {
-      const analysisPrompt = this.generateToolAnalysisPrompt(userMessage, availableTools);
+      const conversationHistory = await jsonDb.getConversationContext(userId, true, 10); // Get last 10 messages
+      const analysisPrompt = this.generateToolAnalysisPrompt(userMessage, conversationHistory, availableTools);
 
       // Create a simple conversation for analysis
-      const analysisHistory = [
+      const analysisHistoryForAI = [
         {
           role: 'user',
           parts: [{ text: analysisPrompt }]
         }
       ];
 
-      const response = await geminiClient.generateContent(analysisHistory, null, null, 1);
+      const response = await geminiClient.generateContent(analysisHistoryForAI, null, null, 1);
       
       // Extract JSON from response
       const jsonMatch = response.match(/\{[\s\S]*\}/);

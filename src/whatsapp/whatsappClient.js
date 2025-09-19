@@ -114,18 +114,10 @@ export class WhatsAppClient {
 
       return await useMultiFileAuthState(config.paths.sessionDir);
     } catch (error) {
-      logger.warn('Auth state creation failed, clearing and retrying:', error.message);
-      
-      // Clear corrupted session and try again
-      try {
-        await FileUtils.clearDirectory(config.paths.sessionDir);
-        await FileUtils.ensureDir(config.paths.sessionDir);
-        logger.info('Session cleared, creating fresh auth state');
-        return await useMultiFileAuthState(config.paths.sessionDir);
-      } catch (retryError) {
-        logger.error('Failed to create auth state after clearing:', retryError);
-        throw retryError;
-      }
+      logger.error('Failed to create auth state, session might be corrupted:', error);
+      // We are not clearing the session here to allow for manual intervention.
+      // If the bot fails to start, the user may need to clear the session directory manually.
+      throw new Error(`Failed to create auth state: ${error.message}. Session files may be corrupt.`);
     }
   }
 
@@ -453,6 +445,27 @@ export class WhatsAppClient {
   }
 
   /**
+   * Send a document
+   */
+  async sendDocument(jid, filePath, fileName) {
+    if (!this.isConnected || !this.sock) {
+      throw new Error('WhatsApp client is not connected');
+    }
+
+    try {
+      const message = {
+        document: { url: filePath },
+        mimetype: 'application/pdf',
+        fileName: fileName || 'document.pdf'
+      };
+      await this.sock.sendMessage(jid, message);
+    } catch (error) {
+      logger.error(`Failed to send document to ${jid}:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Delete a message
    */
   async deleteMessage(jid, messageId) {
@@ -570,12 +583,9 @@ export class WhatsAppClient {
    */
   async disconnect() {
     if (this.sock) {
-      try {
-        await this.sock.logout();
-        logger.success('WhatsApp disconnected gracefully');
-      } catch (error) {
-        logger.warn('Force disconnect due to error:', error.message);
-      }
+      // No need to logout. This invalidates the session.
+      // The socket will be closed automatically when the process exits.
+      logger.success('WhatsApp client disconnected');
       this.sock = null;
       this.isConnected = false;
     }

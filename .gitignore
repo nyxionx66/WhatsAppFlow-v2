@@ -14,3 +14,8 @@ sessions/
 # OS generated files
 .DS_Store
 Thumbs.db
+package-lock.json
+yarn.lock
+.vscode/
+.idea/
+dist/

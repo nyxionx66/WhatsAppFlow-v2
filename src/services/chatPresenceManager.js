@@ -57,52 +57,8 @@ export class ChatPresenceManager {
    * AI decides when to mark message as read
    */
   async decideReadDelay(userId, messageText) {
-    try {
-      const memory = await memoryManager.getUserMemory(userId);
-      
-      const readDecisionPrompt = `MESSAGE READ TIMING DECISION:
-
-User message: "${messageText}"
-User relationship: ${this.getRelationshipContext(memory)}
-
-Decide when to mark this message as "read" to feel natural and human-like.
-
-Consider:
-- Message urgency/emotion (urgent = read faster)
-- Relationship closeness (close friends = read faster)
-- Message length (longer = read slower)
-- Current time context
-- Conversation flow
-
-Respond with JSON:
-{
-  "delay_seconds": 1-30,
-  "reason": "explanation for timing"
-}`;
-
-      const analysisHistory = [{
-        role: 'user',
-        parts: [{ text: readDecisionPrompt }]
-      }];
-
-      const response = await geminiClient.generateContent(analysisHistory, null, null, 1);
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      
-      if (jsonMatch) {
-        const decision = JSON.parse(jsonMatch[0]);
-        const delayMs = Math.max(1000, Math.min(30000, decision.delay_seconds * 1000));
-        logger.debug(`Read delay for ${userId}: ${delayMs}ms - ${decision.reason}`);
-        return delayMs;
-      }
-
-      // Fallback: Random delay based on message length
-      return this.getRandomDelay(2000, Math.min(15000, messageText.length * 100));
-      
-    } catch (error) {
-      logger.debug('Error in read delay decision:', error);
-      // Fallback to random delay
-      return this.getRandomDelay(2000, 10000);
-    }
+    // Fixed 3-second delay for consistent behavior
+    return 3000; // 3 seconds
   }
 
   /**

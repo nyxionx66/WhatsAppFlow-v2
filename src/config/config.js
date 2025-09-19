@@ -14,7 +14,7 @@ export const config = {
     apiKeys: process.env.GEMINI_API_KEYS?.split(',').map(key => key.trim()) || [],
     model: 'gemini-2.5-pro', // Using 1.5 Pro as it's better for complex instructions
     maxTokens: 8192,
-    temperature: 0.8, // Slightly higher for more natural, less robotic responses
+    temperature: 1, // Slightly higher for more natural, less robotic responses
     thinkingBudget: -1, // Unlimited thinking
   },
 
